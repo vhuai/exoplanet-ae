@@ -11,7 +11,7 @@ import pandas as pd
 import math
 import random
 
-from astroquery.mast import Tesscut
+# from astroquery.mast import Tesscut
 from astropy.table import Table
 
 import argparse
@@ -394,14 +394,11 @@ def light_curve_length_counter(indir):
         light_curve_lengths.append(len(detrended_light_curve))
     return light_curve_lengths
 
-
-# TODO: Before boarding the code to github, delete this line of code and use get_curves() instead
 indir = get_curves()
 training_data, test_data, training_data_label, test_data_label = data_set_creation(indir, 300, 330)
-print("training data length: ", len(training_data))
-print("test data length: ", len(test_data))
-print("training label length: ", len(training_data_label))
-print("test data length: ", len(test_data_label))
+
+if not (len(training_data) == len(training_data_label) and len(test_data) == len(test_data_label)):
+    print("the program will break")
 
 """
 light_curve_lengths = light_curve_length_counter(indir)

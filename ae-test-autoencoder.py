@@ -4,45 +4,31 @@
 
 # used anaconda with a tensorflow env
 # additional packages downloaded:
-# tensorflow, seaborn, astropy, astroquery, sklearn
+# tensorflow, sklearn
 
-# from astropy.io import fits
-# import seaborn as sns
+# from astroquery.mast import Tesscut
+# from astropy.table import Table
+# from sklearn.model_selection import train_test_split
+# from tensorflow.keras.datasets import fashion_mnist
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-# import math
-
-from astroquery.mast import Tesscut
-from astropy.table import Table
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-from sklearn.model_selection import train_test_split
 from tensorflow.keras import layers, losses
-from tensorflow.keras.datasets import fashion_mnist
 from tensorflow.keras.models import Model
 
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 import pickle
 
-normal_train_data = pickle.load(open("train.p", "rb"))
-# temporary = []
-# for light_curve in normal_train_data:
-#   if len(light_curve) < 36414:
-#     light_curve = np.append(light_curve, np.array(light_curve[0]))
-#   temporary.append(light_curve)
-# normal_train_data = temporary
-normal_train_data = tf.cast(normal_train_data, tf.float32)
+# loading the data from pickle file created from ae-simulate-trainingdata.py
+training_data = pickle.load(open("train.p", "rb"))
+training_data = tf.cast(training_data, tf.float32)
 
 test_data = pickle.load(open("test.p", "rb"))
-# temporary = []
-# for light_curve in test_data:
-#   if len(light_curve) < 36414:
-#     light_curve = np.append(light_curve, np.array(light_curve[0]))
-#   temporary.append(light_curve)
-# test_data = temporary
 test_data = tf.cast(test_data, tf.float32)
 
 test_data_label = pickle.load(open("test_label.p", "rb"))
@@ -71,22 +57,20 @@ class AnomalyDetector(Model):
         return decoded
 
 autoencoder = AnomalyDetector()
-
 autoencoder.compile(optimizer='adam', loss='mae')
 
-history = autoencoder.fit(normal_train_data, normal_train_data, 
+history = autoencoder.fit(training_data, training_data, 
           epochs=10, 
           batch_size=50,
-          validation_data=(normal_train_data, normal_train_data),
+          validation_data=(training_data, training_data),
           shuffle=True)
 
-reconstructions = autoencoder.predict(normal_train_data)
-
-train_loss = tf.keras.losses.mae(reconstructions, normal_train_data)
+reconstructions = autoencoder.predict(training_data)
+train_loss = tf.keras.losses.mae(reconstructions, training_data)
 
 plt.hist(train_loss[None,:], bins=50)
 plt.xlabel("Train loss")
-plt.ylabel("No of examples")
+plt.ylabel("Number of examples")
 plt.show()
 
 threshold = np.mean(train_loss) + np.std(train_loss)
